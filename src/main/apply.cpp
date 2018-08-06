@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-2015  The R Core Team
+ *  Copyright (C) 2000-2016  The R Core Team
  *  Copyright (C) 2008-2014  Andrew R. Runnalls.
  *  Copyright (C) 2014 and onwards the Rho Project Authors.
  *
@@ -137,7 +137,7 @@ SEXP attribute_hidden do_vapply(SEXP call, SEXP op, SEXP args, SEXP rho)
 	/* Build call: FUN(XX[[<ind>]], ...) */
 
 	static Symbol* isym = Symbol::obtain("i");
-	PROTECT(ind = allocVector(INTSXP, 1));
+	PROTECT(ind = allocVector(realIndx ? REALSXP : INTSXP, 1));
 	defineVar(isym, ind, rho);
 	SET_NAMED(ind, 1);
 

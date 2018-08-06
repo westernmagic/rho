@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-2016   The R Core Team.
+ *  Copyright (C) 2000-2017   The R Core Team.
  *  Copyright (C) 2008-2014  Andrew R. Runnalls.
  *  Copyright (C) 2014 and onwards the Rho Project Authors.
  *
@@ -1009,7 +1009,7 @@ static char* win_getlasterror_str(void)
 
 static Rboolean	fifo_open(Rconnection con)
 {
-    Rfifoconn this = con->private;
+    Rfifoconn this = con->connprivate;
     unsigned int uin_pipname_len = strlen(con->description);
     unsigned int uin_mode_len = strlen(con->mode);
     char *hch_pipename = NULL;
@@ -1116,7 +1116,7 @@ static Rboolean	fifo_open(Rconnection con)
 
 static void fifo_close(Rconnection con)
 {
-    Rfifoconn this = con->private;
+    Rfifoconn this = con->connprivate;
     con->isopen = FALSE;
     con->status = CloseHandle(this->hdl_namedpipe) ? 0 : -1;
     if (this->overlapped_write) CloseHandle(this->overlapped_write);
@@ -1124,7 +1124,7 @@ static void fifo_close(Rconnection con)
 
 static size_t fifo_read(void* ptr, size_t size, size_t nitems, Rconnection con)
 {
-    Rfifoconn this = con->private;
+    Rfifoconn this = con->connprivate;
     size_t read_byte = 0;
 
     // avoid integer overflow
@@ -1144,7 +1144,7 @@ static size_t fifo_read(void* ptr, size_t size, size_t nitems, Rconnection con)
 static size_t
 fifo_write(const void *ptr, size_t size, size_t nitems, Rconnection con)
 {
-    Rfifoconn this = con->private;
+    Rfifoconn this = con->connprivate;
     size_t written_bytes = 0;
 
     if (size * sizeof(wchar_t) * nitems > UINT_MAX)
@@ -1177,7 +1177,7 @@ fifo_write(const void *ptr, size_t size, size_t nitems, Rconnection con)
 
 static int fifo_fgetc_internal(Rconnection con)
 {
-    Rfifoconn  this = con->private;
+    Rfifoconn  this = con->connprivate;
     DWORD available_bytes = 0;
     DWORD read_byte = 0;
     DWORD len = 1 * sizeof(wchar_t);
@@ -5209,6 +5209,23 @@ SEXP attribute_hidden do_url(/*const*/ Expression* call, const BuiltInFunction* 
     if(strlen(open)) {
 	Rboolean success = con->open(con);
 	if(!success) {
+	    if(defmeth && meth == 0 && /*winmeth == 0 && */
+	       ((Rurlconn)(con->connprivate))->status == 2) {
+		warning("\"internal\" method failed, so trying \"libcurl\"");
+		con_close1(con);
+		con = R_newCurlUrl(url, open, 1);
+		Connections[ncon] = con;
+		con->blocking = RHOCONSTRUCT(Rboolean, block);
+		strncpy(con->encname, CHAR(STRING_ELT(enc, 0)), 100);
+		con->encname[100 - 1] = '\0';
+		UNPROTECT(1);
+		con->ex_ptr = 
+		    PROTECT(R_MakeExternalPtr(con->id, install("connection"), 
+					      R_NilValue));
+		success = con->open(con);
+	    }
+	}
+	if(!success) {
 	    con_destroy(ncon);
 	    error(_("cannot open the connection"));
 	}
@@ -6129,7 +6146,7 @@ do_memDecompress(/*const*/ Expression* call, const BuiltInFunction* op, RObject*
    they are initialized to dummy_ (where available) and null_ (all others) callbacks.
    Also note that the resulting object has a finalizer, so any clean up (including after
    errors) is done by garbage collection - the caller may not free anything in the
-   structure explicitly (that includes the con->private pointer!).
+   structure explicitly (that includes the con->connprivate pointer!).
  */
 SEXP R_new_custom_connection(const char *description, const char *mode, const char *class_name, Rconnection *ptr)
 {

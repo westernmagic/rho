@@ -505,12 +505,14 @@ R_newunz(const char *description, const char *const mode)
     if(!newconn->connclass) {
 	free(newconn);
 	error(_("allocation of 'unz' connection failed"));
+	/* for Solaris 12.5 */ newconn = NULL;
     }
     strcpy(newconn->connclass, "unz");
     newconn->description = static_cast<char *>( malloc(strlen(description) + 1));
     if(!newconn->description) {
 	free(newconn->connclass); free(newconn);
 	error(_("allocation of 'unz' connection failed"));
+	/* for Solaris 12.5 */ newconn = NULL;
     }
     init_con(newconn, description, CE_NATIVE, mode);
 
@@ -528,6 +530,7 @@ R_newunz(const char *description, const char *const mode)
     if(!newconn->connprivate) {
 	free(newconn->description); free(newconn->connclass); free(newconn);
 	error(_("allocation of 'unz' connection failed"));
+	/* for Solaris 12.5 */ newconn = NULL;
     }
     return newconn;
 }
