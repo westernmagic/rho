@@ -103,7 +103,12 @@ do_getGraphicsEventEnv(SEXP call, SEXP op, SEXP args, SEXP env)
     int devnum;
     pGEDevDesc gdd;
 
-    devnum = INTEGER(CAR(args))[0] - 1;
+    // checkArity(op, args);
+
+    devnum = INTEGER(CAR(args))[0];
+    if(devnum == NA_INTEGER)
+	error(_("invalid graphical device number"));
+    devnum--;
     if(devnum < 1 || devnum > R_MaxDevices)
 	error(_("invalid graphical device number"));
 

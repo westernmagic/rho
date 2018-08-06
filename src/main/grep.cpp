@@ -1179,9 +1179,9 @@ SEXP attribute_hidden do_grepraw(/*const*/ rho::Expression* call, const rho::Bui
 		    SET_VECTOR_ELT(ans, nmatches, elt);
 		    if (LENGTH(elt))
 			memcpy(RAW(elt), RAW(text) + LENGTH(text) - LENGTH(elt), LENGTH(elt));
+		    UNPROTECT(1); /* ans */
 		    if (mvec)
 			UNPROTECT(1);
-		    UNPROTECT(1);
 		    return ans;
 		}
 

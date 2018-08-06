@@ -1,12 +1,13 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2002--2015 The R Core Team
+ *  Copyright (C) 2002--2016 The R Core Team
  *  Copyright (C) 2008-2014  Andrew R. Runnalls.
  *  Copyright (C) 2014 and onwards the Rho Project Authors.
  *
  *  Rho is not part of the R project, and bugs and other issues should
  *  not be reported via r-bugs or other R project channels; instead refer
  *  to the Rho website.
+=======
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,7 +43,8 @@ int F77_SUB(interv)(double *xt, int *n, double *x,
 }
 
 int findInterval2(double *xt, int n, double x,
-		  Rboolean rightmost_closed, Rboolean all_inside, Rboolean left_open,
+		  Rboolean rightmost_closed, Rboolean all_inside,
+		  Rboolean left_open, // <- new in findInterval2()
 		  int ilo, int *mflag)
 {
     int istep, middle, ihi;
@@ -113,7 +115,7 @@ int findInterval2(double *xt, int n, double x,
 #define X_grtr(XT_v) x > XT_v || (!left_open && x >= XT_v)
 #define X_smlr(XT_v) x < XT_v ||  (left_open && x <= XT_v)
 
-
+    if(n == 0) { *mflag = 0 ; return 0; }
     /* 1-indexing : */
     --xt;
 
@@ -170,6 +172,8 @@ int findInterval2(double *xt, int n, double x,
 	if (X_grtr(xt[n]))		right_boundary;
 	ihi = n;
     }
+    
+    if (left_open) goto L51; /* There _is_ a path to here, avoiding return and goto */
 
 L50: // ! left_open
     /* **** now xt[ilo] <= x < xt[ihi] . narrow the interval. */

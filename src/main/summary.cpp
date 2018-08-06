@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997-2015   The R Core Team
+ *  Copyright (C) 1997--2016  The R Core Team
  *  Copyright (C) 2008-2014  Andrew R. Runnalls.
  *  Copyright (C) 2014 and onwards the Rho Project Authors.
  *
@@ -593,12 +593,14 @@ SEXP attribute_hidden do_summary(SEXP call, SEXP op, SEXP args, SEXP env)
 			    (iop == 2 && tmp < zcum.r) ||
 			    (iop == 3 && tmp > zcum.r))	zcum.r = tmp;
 		    } else if(ans_type == STRSXP) {
-			if(empty) scum = stmp;
+			if(int_a)
+			   stmp = StringFromInteger(itmp, &warn);
+			else if(real_a)
+			   stmp = StringFromReal(tmp, &warn);
+
+			if(empty)
+			    scum = stmp;
 			else if (scum != NA_STRING) {
-			    if(int_a)
-				stmp = StringFromInteger(itmp, &warn);
-			    if(real_a)
-				stmp = StringFromReal(tmp, &warn);
 			    PROTECT(stmp);
 			    if(stmp == NA_STRING ||
 			       (iop == 2 && stmp != scum && Scollate(stmp, scum) < 0) ||
@@ -894,6 +896,7 @@ SEXP attribute_hidden do_first_min(/*const*/ Expression* call, const BuiltInFunc
     }
     return ans;
 }
+
 
 /* which(x) : indices of non-NA TRUE values in x */
 SEXP attribute_hidden do_which(/*const*/ Expression* call, const BuiltInFunction* op, RObject* x_)

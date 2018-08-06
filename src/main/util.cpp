@@ -1015,7 +1015,7 @@ extern "C" const char *getTZinfo(void)
     const char *p = getenv("TZ");
     if(p) return p;
 #ifdef HAVE_REALPATH
-    // This works on Linux, OS X and *BSD: other known OSes set TZ.
+    // This works on Linux, macOS and *BSD: other known OSes set TZ.
     static char abspath[PATH_MAX+1] = "";
     if(abspath[0]) return abspath + 20;
     if(realpath("/etc/localtime", abspath))
@@ -1789,7 +1789,7 @@ SEXP attribute_hidden do_enc2(/*const*/ Expression* call, const BuiltInFunction*
 #ifdef USE_ICU
 # include <locale.h>
 #ifdef USE_ICU_APPLE
-/* Mac OS X is missing the headers */
+/* macOS is missing the headers */
 extern "C" {
     typedef int UErrorCode; /* really an enum these days */
     struct UCollator;
@@ -2194,7 +2194,8 @@ SEXP attribute_hidden do_tabulate(/*const*/ Expression* call, const BuiltInFunct
     return ans;
 }
 
-/* .Internal(findInterval(vec, x, rightmost.closed, all.inside,  left.open))
+/* Note: R's findInterval( x , vec, ...)  has first two arguments swapped !
+ * .Internal(findInterval(vec, x, rightmost.closed, all.inside,  left.open))
  *                         xt  x    right             inside       leftOp
  * x can be a long vector but xt cannot since the result is integer
 */
