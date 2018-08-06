@@ -788,19 +788,10 @@
                     owd <- setwd("src")
                     system_makefile <-
                         file.path(R.home(), paste0("etc", rarch), "Makeconf")
-                    site <- Sys.getenv("R_MAKEVARS_SITE", NA_character_)
-                    if (is.na(site)) site <- file.path(paste0(R.home("etc"), rarch), "Makevars.site")
                     makefiles <- c(system_makefile,
-                                   if(file.exists(site)) site,
-                                   "Makefile")
-                    if (!is.na(f <- Sys.getenv("R_MAKEVARS_USER",
-                                               NA_character_))) {
-                        if (file.exists(f))  makefiles <- c(makefiles, f)
-                    } else if (file.exists(f <- path.expand(paste("~/.R/Makevars",
-                                                                  Sys.getenv("R_PLATFORM"), sep = "-"))))
-                        makefiles <- c(makefiles, f)
-                    else if (file.exists(f <- path.expand("~/.R/Makevars")))
-                        makefiles <- c(makefiles, f)
+                                   makevars_site(),
+                                   "Makefile",
+                                   makevars_user())
                     res <- system(paste(MAKE,
                                         paste("-f", shQuote(makefiles), collapse = " ")))
                     if (res == 0) shlib_install(instdir, rarch)
@@ -1512,18 +1503,7 @@
                 errmsg("extracted multiple files from ", sQuote(pkg))
             if (dir.exists(new)) pkgname <- basename(new)
             else errmsg("cannot extract package from ", sQuote(pkg))
-
-            ## If we have a binary bundle distribution, there should
-            ## be a DESCRIPTION file at top level. These are defunct
-            if (file.exists(ff <- file.path(tmpdir, "DESCRIPTION"))) {
-                con <- read.dcf(ff, "Contains")
-                if (!is.na(con))
-                    message("looks like a binary bundle", domain = NA)
-                else
-                    message("unknown package layout", domain = NA)
-                do_cleanup_tmpdir()
-                q("no", status = 1, runLast = FALSE)
-            } else if (file.exists(file.path(tmpdir, pkgname, "DESCRIPTION"))) {
+            if (file.exists(file.path(tmpdir, pkgname, "DESCRIPTION"))) {
                 allpkgs <- c(allpkgs, file.path(tmpdir, pkgname))
             } else errmsg("cannot extract package from ", sQuote(pkg))
         } else if (file.exists(file.path(pkg, "DESCRIPTION"))) {
@@ -1824,14 +1804,7 @@
         else if (file.exists(f <- path.expand("~/.R/Makevars")))
             makefiles <- c(makefiles, f)
     } else {
-        if (!is.na(f <- Sys.getenv("R_MAKEVARS_USER", NA_character_))) {
-            if (file.exists(f))  makefiles <- c(makefiles, f)
-        } else if (file.exists(f <- path.expand(paste("~/.R/Makevars",
-                                               Sys.getenv("R_PLATFORM"),
-                                               sep = "-"))))
-            makefiles <- c(makefiles, f)
-        else if (file.exists(f <- path.expand("~/.R/Makevars")))
-            makefiles <- c(makefiles, f)
+        makefiles <- c(makefiles, makevars_user())
     }
 
     makeobjs <- paste0("OBJECTS=", shQuote(objs))
@@ -2295,6 +2268,52 @@ function(name="", version = "0.0")
                  '        VALUE "Translation", 0x409, 1252',
                  '    END',
                  'END'))
+}
+
+### * makevars_user
+
+makevars_user <-
+function()
+{
+    m <- character()
+    if(.Platform$OS.type == "windows") {
+        if(!is.na(f <- Sys.getenv("R_MAKEVARS_USER", NA_character_))) {
+            if(file.exists(f)) m <- f
+        }
+        else if((Sys.getenv("R_ARCH") == "/x64") &&
+                file.exists(f <- path.expand("~/.R/Makevars.win64")))
+            m <- f
+        else if(file.exists(f <- path.expand("~/.R/Makevars.win")))
+            m <- f
+        else if(file.exists(f <- path.expand("~/.R/Makevars")))
+            m <- f
+    }
+    else {
+        if(!is.na(f <- Sys.getenv("R_MAKEVARS_USER", NA_character_))) {
+            if(file.exists(f)) m <- f
+        }
+        else if(file.exists(f <- path.expand(paste("~/.R/Makevars",
+                                                   Sys.getenv("R_PLATFORM"),
+                                                   sep = "-"))))
+            m <- f
+        else if(file.exists(f <- path.expand("~/.R/Makevars")))
+            m <- f
+    }
+    m
+}
+
+### * makevars_site
+
+makevars_site <-
+function()
+{
+    m <- character()
+    if(is.na(f <- Sys.getenv("R_MAKEVARS_SITE", NA_character_)))
+        f <- file.path(paste0(R.home("etc"), Sys.getenv("R_ARCH")),
+                       "Makevars.site")
+    if(file.exists(f))
+        m <- f
+    m
 }
 
 

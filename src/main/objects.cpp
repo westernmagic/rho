@@ -840,7 +840,7 @@ static SEXP inherits3(SEXP x, SEXP what, SEXP which)
     GCStackRoot<> klass;
 
     if(IS_S4_OBJECT(x))
-	klass = R_data_class2(x);
+	klass = R_data_class2(x); // -> := S4_extends( "class(x)" )
     else
 	klass = R_data_class(x, FALSE);
     int nclass = length(klass);

@@ -2709,7 +2709,19 @@ static SEXP R_set_class(SEXP obj, SEXP value, SEXP call)
 
 SEXP attribute_hidden R_do_set_class(/*const*/ Expression* call, const BuiltInFunction* op, RObject* object, RObject* klass)
 {
+//<<<<<<< HEAD:src/main/coerce.cpp
     return R_set_class(object, klass, call);
+/*=======
+    SEXP ans;
+    checkArity(op, args);
+    check1arg(args, call, "x");
+
+    if (MAYBE_SHARED(CAR(args))) SETCAR(args, shallow_duplicate(CAR(args)));
+    ans = R_set_class(CAR(args), CADR(args), call);
+    SET_NAMED(CAR(args), 0);
+    return ans;
+>>>>>>> r-source/tags/R-3-3-1:src/main/coerce.c
+*/
 }
 
 /* primitive */

@@ -87,7 +87,12 @@ extern "C" {
 
 SEXP   R_new_custom_connection(const char *description, const char *mode, const char *class_name, Rconnection *ptr);
 size_t R_ReadConnection(Rconnection con, void *buf, size_t n);
+//<<<<<<< HEAD
 size_t R_WriteConnection(Rconnection con, const void *buf, size_t n);
+//=======
+//size_t R_WriteConnection(Rconnection con, void *buf, size_t n);
+Rconnection R_GetConnection(SEXP sConn);
+//>>>>>>> r-source/tags/R-3-3-1
 
 #ifdef  __cplusplus
 }
