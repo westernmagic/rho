@@ -38,7 +38,7 @@ class MCJITMemoryManagerTest : public ::testing::Test
 {
 protected:
     MCJITMemoryManagerTest()
-	: m_context(getGlobalContext()),
+	: m_context(LLVMContext()),
 	  m_module(new Module("mcjit_mm_test", m_context)),
 	  m_manager(new rho::JIT::MCJITMemoryManager(m_module.get())) { }
 
